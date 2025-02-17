@@ -8,7 +8,7 @@ import { AuthorizationGuard } from './guards/authorization.guard';
 
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
 
-@Controller('products')
+@Controller('greenEnergy')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -19,4 +19,5 @@ export class AppController {
   someProtectedRoute(@Req() req) {
     return { message: 'Accessed Resource', userId: req.userId };
   }
+
 }

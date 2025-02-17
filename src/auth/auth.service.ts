@@ -18,6 +18,7 @@ import { nanoid } from 'nanoid';
 import { ResetToken } from './schemas/reset-token.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
+import { LoginGoogleDto } from './dtos/google.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,8 +34,9 @@ export class AuthService {
   ) {}
 
   async signup(signupData: SignupDto) {
-    const { email, password, name } = signupData;
+    const { email, password, name ,idGoogle} = signupData;
 
+    console.log(signupData);
     //Check if email is in use
     const emailInUse = await this.UserModel.findOne({
       email,
@@ -48,15 +50,16 @@ export class AuthService {
     // Create user document and save in mongodb
     return await this.UserModel.create({
       name,
-      email,
+      email : email.toLowerCase(),
       password: hashedPassword,
+      idGoogle : idGoogle,
     });
   }
 
   async login(credentials: LoginDto) {
     const { email, password } = credentials;
     //Find if user exists by email
-    const user = await this.UserModel.findOne({ email });
+    const user = await this.UserModel.findOne({ email : email.toLowerCase() });
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
@@ -75,6 +78,17 @@ export class AuthService {
     };
   }
 
+
+  async loginWithGoogle(dto: LoginGoogleDto) {
+    const { email , idGoogle} = dto;
+    const user = this.UserModel.findOne({ idGoogle : idGoogle  });
+    console.log(user);
+    if (!user) {
+      return "this user doesn't exist";
+    }
+    return user
+
+  }
   async changePassword(userId, oldPassword: string, newPassword: string) {
     //Find the user
     const user = await this.UserModel.findById(userId);
@@ -109,8 +123,16 @@ export class AuthService {
         userId: user._id,
         expiryDate,
       });
+      const code = Math.floor(100000 + Math.random() * 900000);
       //Send the link to the user by email
-      this.mailService.sendPasswordResetEmail(email, resetToken);
+      await this.mailService.sendPasswordResetEmail(email, code);
+      return {
+        "resetToken": resetToken, "code": code,
+       // "statusCode": 200
+      };
+
+      //Send the link to the user by email
+     // this.mailService.sendPasswordResetEmail(email);
     }
 
     return { message: 'If this user exists, they will receive an email' };
@@ -135,6 +157,7 @@ export class AuthService {
 
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
+    return { message: 'Password successfully reset' }; // ✅ Ajoute une réponse JSON
   }
 
   async refreshTokens(refreshToken: string) {
