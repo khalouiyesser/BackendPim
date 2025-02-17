@@ -19,6 +19,8 @@ import { ResetToken } from './schemas/reset-token.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
 import { LoginGoogleDto } from './dtos/google.dto';
+import { Payment } from './dtos/payment.dto';
+import { StripeService } from '../services/stripe.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +32,7 @@ export class AuthService {
     private ResetTokenModel: Model<ResetToken>,
     private jwtService: JwtService,
     private mailService: MailService,
+    private paymenta: StripeService,
     private rolesService: RolesService,
   ) {}
 
@@ -78,6 +81,11 @@ export class AuthService {
     };
   }
 
+
+
+  async payment(payment: Payment) {
+   return  await this.paymenta.createPaymentIntent(payment.amount, payment.currency)
+  }
 
   async loginWithGoogle(dto: LoginGoogleDto) {
     const { email , idGoogle} = dto;

@@ -10,6 +10,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { MailService } from '../services/mail.service';
 import { ApiTags } from '@nestjs/swagger';
 import { LoginGoogleDto } from './dtos/google.dto';
+import { Payment } from './dtos/payment.dto';
 
 @ApiTags('Authentification')
 @Controller('auth')
@@ -30,7 +31,6 @@ export class AuthController {
   @Get('test')
   async test() {
     return await this.mailService.sendPasswordResetEmail("khaluiyesser@gmail.com",123456)
-
   }
   @Post('login')
   async login(@Body() credentials: LoginDto) {
@@ -40,6 +40,13 @@ export class AuthController {
   @Post('loginGoogle')
   async loginGoogle(@Body() credentials: LoginGoogleDto) {
     return this.authService.loginWithGoogle(credentials);
+  }
+
+
+  @Post('payment')
+  async payment(@Body() payment: Payment) {
+    console.log(111);
+    return this.authService.payment(payment);
   }
 
   @Post('refresh')
